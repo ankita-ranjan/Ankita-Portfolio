@@ -38,50 +38,68 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        async function loadPortfolio() {
-            const container = document.getElementById('portfolio');
+async function loadPortfolio() {
+    const container = document.getElementById('portfolio');
 
-            try {
-                const pdf = await pdfjsLib.getDocument(
-                    './ANKITA%20PDF%20PORTFOLIO.pdf'
-                ).promise;
+    try {
+        const pdf = await pdfjsLib.getDocument(
+            './ANKITA%20PDF%20PORTFOLIO.pdf'
+        ).promise;
 
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
+        const outputScale = Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
 
-                    const original = page.getViewport({ scale: 1 });
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
 
-                    const scale = container.clientWidth / original.width;
-                    const viewport = page.getViewport({ scale });
+            const original = page.getViewport({ scale: 1 });
 
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
+            const scale = container.clientWidth / original.width;
 
-                    canvas.width = Math.floor(viewport.width);
-                    canvas.height = Math.floor(viewport.height);
+            const viewport = page.getViewport({ scale });
 
-                    canvas.style.width = '100%';
-                    canvas.style.height = 'auto';
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
 
-                    container.appendChild(canvas);
+            // Render at higher resolution
+            canvas.width = Math.floor(
+                viewport.width * outputScale
+            );
 
-                    await page.render({
-                        canvasContext: context,
-                        viewport: viewport
-                    }).promise;
-                }
+            canvas.height = Math.floor(
+                viewport.height * outputScale
+            );
 
-            } catch (error) {
-                console.error('Portfolio loading error:', error);
-                container.innerHTML =
-                    '<p style="padding:30px;text-align:center;">Unable to load portfolio. Please refresh the page.</p>';
-            }
+            // Display at normal webpage size
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+
+            container.appendChild(canvas);
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport,
+                transform: [
+                    outputScale, 0,
+                    0, outputScale,
+                    0, 0
+                ]
+            }).promise;
         }
 
-        loadPortfolio();
+    } catch (error) {
+        console.error('Portfolio loading error:', error);
+    }
+}
+
+loadPortfolio();
+
     </script>
 
 </body>
