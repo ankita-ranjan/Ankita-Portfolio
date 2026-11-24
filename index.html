@@ -2,157 +2,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ankita Ranjan | UI/UX Portfolio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ankita Ranjan | UI/UX Portfolio</title>
 
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    background: #ffffff;
-    overflow-x: hidden;
-}
+        body {
+            background: #ffffff;
+            overflow-x: hidden;
+        }
 
-#portfolio {
-    width: 100%;
-}
+        #portfolio {
+            width: 100%;
+        }
 
-canvas {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin: 0 auto;
-}
-</style>
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 
 <body>
 
-<div id="portfolio"></div>
+    <div id="portfolio"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-async function loadPortfolio() {
+        async function loadPortfolio() {
+            const container = document.getElementById('portfolio');
 
-    const pdf = await pdfjsLib.getDocument(
-        './ANKITA PDF PORTFOLIO.pdf'
-    ).promise;
+            try {
+                const pdf = await pdfjsLib.getDocument(
+                    './ANKITA%20PDF%20PORTFOLIO.pdf'
+                ).promise;
 
-    const container = document.getElementById('portfolio');
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
 
-    for (let i = 1; i <= pdf.numPages; i++) {
+                    const original = page.getViewport({ scale: 1 });
 
-        const page = await pdf.getPage(i);
-        const original = page.getViewport({ scale: 1 });
+                    const scale = container.clientWidth / original.width;
+                    const viewport = page.getViewport({ scale });
 
-        const scale = Math.min(
-            window.innerWidth / original.width,
-            1.8
-        );
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
 
-        const viewport = page.getViewport({ scale });
+                    canvas.width = Math.floor(viewport.width);
+                    canvas.height = Math.floor(viewport.height);
 
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
 
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+                    container.appendChild(canvas);
 
-        container.appendChild(canvas);
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                }
 
-        await page.render({
-            canvasContext: context,
-            viewport: viewport
-        }).promise;
-    }
-}
+            } catch (error) {
+                console.error('Portfolio loading error:', error);
+                container.innerHTML =
+                    '<p style="padding:30px;text-align:center;">Unable to load portfolio. Please refresh the page.</p>';
+            }
+        }
 
-loadPortfolio().catch(console.error);
-</script>
-
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ankita Ranjan | Portfolio</title>
-
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: #fff;
-}
-
-#pdf-container {
-    width: 100%;
-}
-
-canvas {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin: 0 auto;
-}
-</style>
-</head>
-
-<body>
-
-<div id="pdf-container"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const url = './ANKITA PDF PORTFOLIO.pdf';
-
-async function showPDF() {
-    const pdf = await pdfjsLib.getDocument(url).promise;
-    const container = document.getElementById('pdf-container');
-
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-
-        const viewport = page.getViewport({ scale: 1 });
-        const scale = container.clientWidth / viewport.width;
-        const scaledViewport = page.getViewport({ scale });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-
-        canvas.width = scaledViewport.width;
-        canvas.height = scaledViewport.height;
-
-        container.appendChild(canvas);
-
-        await page.render({
-            canvasContext: context,
-            viewport: scaledViewport
-        }).promise;
-    }
-}
-
-showPDF();
-</script>
+        loadPortfolio();
+    </script>
 
 </body>
 </html>
