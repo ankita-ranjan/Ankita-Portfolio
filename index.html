@@ -44,7 +44,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 async function loadPortfolio() {
 
     const pdf = await pdfjsLib.getDocument(
-        './ANKITA%20PDF%20PORTFOLIO.pdf'
+        './ANKITA PDF PORTFOLIO.pdf'
     ).promise;
 
     const container = document.getElementById('portfolio');
@@ -123,7 +123,7 @@ canvas {
 pdfjsLib.GlobalWorkerOptions.workerSrc =
 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const url = './ANKITA%20PDF%20PORTFOLIO.pdf';
+const url = './ANKITA PDF PORTFOLIO.pdf';
 
 async function showPDF() {
     const pdf = await pdfjsLib.getDocument(url).promise;
