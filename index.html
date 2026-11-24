@@ -1,9 +1,11 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Ankita Ranjan | UI/UX Portfolio</title>
 
     <style>
@@ -13,6 +15,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             background: #ffffff;
             overflow-x: hidden;
@@ -20,87 +26,155 @@
 
         #portfolio {
             width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
-        canvas {
+        .pdf-page {
             display: block;
             width: 100%;
             height: auto;
             margin: 0 auto;
         }
+
+        #loading {
+            text-align: center;
+            padding: 40px 20px;
+            font-family: Arial, sans-serif;
+            color: #555;
+        }
+
+        #error {
+            text-align: center;
+            padding: 40px 20px;
+            font-family: Arial, sans-serif;
+            color: #d00;
+        }
     </style>
+
 </head>
 
 <body>
 
+    <div id="loading">Loading portfolio...</div>
+
     <div id="portfolio"></div>
 
+    <div id="error"></div>
+
+    <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script>
-        
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-async function loadPortfolio() {
-    const container = document.getElementById('portfolio');
+        // PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    try {
-        const pdf = await pdfjsLib.getDocument(
-            './ANKITA%20PDF%20PORTFOLIO.pdf'
-        ).promise;
 
-        const outputScale = Math.min(
-            window.devicePixelRatio || 1,
-            2
-        );
+        async function loadPortfolio() {
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
+            const container = document.getElementById('portfolio');
 
-            const original = page.getViewport({ scale: 1 });
+            const loading = document.getElementById('loading');
 
-            const scale = container.clientWidth / original.width;
+            const errorBox = document.getElementById('error');
 
-            const viewport = page.getViewport({ scale });
+            try {
 
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
+                // Load original PDF
+                const pdf = await pdfjsLib.getDocument({
+                    url: './ANKITA%20PDF%20PORTFOLIO.pdf'
+                }).promise;
 
-            // Render at higher resolution
-            canvas.width = Math.floor(
-                viewport.width * outputScale
-            );
+                loading.style.display = 'none';
 
-            canvas.height = Math.floor(
-                viewport.height * outputScale
-            );
+                // High resolution rendering
+                const pixelRatio = Math.min(
+                    Math.max(window.devicePixelRatio || 1, 2),
+                    3
+                );
 
-            // Display at normal webpage size
-            canvas.style.width = '100%';
-            canvas.style.height = 'auto';
+                // Render all PDF pages
+                for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
 
-            container.appendChild(canvas);
+                    const page = await pdf.getPage(pageNumber);
 
-            await page.render({
-                canvasContext: context,
-                viewport: viewport,
-                transform: [
-                    outputScale, 0,
-                    0, outputScale,
-                    0, 0
-                ]
-            }).promise;
+                    // Original page dimensions
+                    const originalViewport = page.getViewport({
+                        scale: 1
+                    });
+
+                    // Responsive display width
+                    const displayWidth = container.clientWidth;
+
+                    const displayScale = displayWidth / originalViewport.width;
+
+                    // Display viewport
+                    const viewport = page.getViewport({
+                        scale: displayScale
+                    });
+
+                    // Create canvas
+                    const canvas = document.createElement('canvas');
+
+                    const context = canvas.getContext('2d', {
+                        alpha: false
+                    });
+
+                    // Actual high-resolution canvas dimensions
+                    canvas.width = Math.ceil(viewport.width * pixelRatio);
+
+                    canvas.height = Math.ceil(viewport.height * pixelRatio);
+
+                    // Display dimensions
+                    canvas.style.width = '100%';
+
+                    canvas.style.height = 'auto';
+
+                    canvas.className = 'pdf-page';
+
+                    // Add page to website
+                    container.appendChild(canvas);
+
+                    // Render PDF page
+                    await page.render({
+
+                        canvasContext: context,
+
+                        viewport: viewport,
+
+                        transform: [
+                            pixelRatio, 0,
+                            0, pixelRatio,
+                            0, 0
+                        ],
+
+                        intent: 'display'
+
+                    }).promise;
+
+                }
+
+            } catch (error) {
+
+                console.error('PDF loading error:', error);
+
+                loading.style.display = 'none';
+
+                errorBox.textContent =
+                    'Unable to load portfolio. Please refresh the page.';
+
+            }
+
         }
 
-    } catch (error) {
-        console.error('Portfolio loading error:', error);
-    }
-}
 
-loadPortfolio();
+        // Start loading
+        loadPortfolio();
 
     </script>
 
 </body>
+
 </html>
